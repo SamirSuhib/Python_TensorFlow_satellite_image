@@ -67,3 +67,26 @@ def show_batch(batch):
 
 # showing a batch of images along with labels
 show_batch(batch)
+
+As you can see, the model is accurate in most of the classes, especially on forest images, as it achieved 100%. However, it's down to 91% for pasture, and the model sometimes predicts the pasture as permanent corp, also on herbaceous vegetation. Most of the confusion is between corp, pasture, and herbaceous vegetation as they all look similar and, most of the time, green from the satellite.
+Let's show some examples that the model predicted:
+
+def show_predicted_samples():
+  plt.figure(figsize=(14, 14))
+  for n in range(64):
+      ax = plt.subplot(8, 8, n + 1)
+      # show the image
+      plt.imshow(images[n])
+      # and put the corresponding label as title upper to the image
+      if predictions[n] == labels[n]:
+        # correct prediction
+        ax.set_title(class_names[predictions[n]], color="green")
+      else:
+        # wrong prediction
+        ax.set_title(f"{class_names[predictions[n]]}/T:{class_names[labels[n]]}", color="red")
+      plt.axis('off')
+      plt.savefig("predicted-sample-images.png")
+
+# showing a batch of images along with predictions labels
+show_predicted_samples()
+
