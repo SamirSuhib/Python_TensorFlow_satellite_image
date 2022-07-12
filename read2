@@ -1,0 +1,69 @@
+3,000 samples on half of the classes, others have 2,500 samples, while pasture only 2,000 samples.
+
+Now let's take our training and validation sets and prepare them before training:
+
+def prepare_for_training(ds, cache=True, batch_size=64, shuffle_buffer_size=1000):
+  if cache:
+    if isinstance(cache, str):
+      ds = ds.cache(cache)
+    else:
+      ds = ds.cache()
+  ds = ds.map(lambda d: (d["image"], tf.one_hot(d["label"], num_classes)))
+  # shuffle the dataset
+  ds = ds.shuffle(buffer_size=shuffle_buffer_size)
+  # Repeat forever
+  ds = ds.repeat()
+  # split to batches
+  ds = ds.batch(batch_size)
+  # `prefetch` lets the dataset fetch batches in the background while the model
+  # is training.
+  ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+  return ds
+  
+Here is what this function does:
+
+•	cache(): This method saves the preprocessed dataset into a local cache file. This will only preprocess it the very first time (in the first epoch during training).
+•	map(): We map our dataset so each sample will be a tuple of an image and its corresponding label one-hot encoded with tf.one_hot().
+•	shuffle(): To shuffle the dataset so the samples are in random order.
+•	repeat()Every time we iterate over the dataset, it'll repeatedly generate samples for us; this will help us during the training.
+•	batch(): We batch our dataset into 64 or 32 samples per training step.
+•	prefetch(): This will enable us to fetch batches in the background while the model is training.
+Let's run it for the training and validation sets:
+batch_size = 64
+
+# preprocess training & validation sets
+
+train_ds = prepare_for_training(train_ds, batch_size=batch_size)
+valid_ds = prepare_for_training(valid_ds, batch_size=batch_size)
+
+Let's see what our data looks like:
+# validating shapes
+
+for el in valid_ds.take(1):
+  print(el[0].shape, el[1].shape) 
+for el in train_ds.take(1):
+  print(el[0].shape, el[1].shape)
+  
+Output:
+
+(64, 64, 64, 3) (64, 10)
+(64, 64, 64, 3) (64, 10)
+Fantastic, both the training and validation have the same shape; where the batch size is 64, and the image shape is (64, 64, 3). The targets have the shape of (64, 10) as it's 64 samples with 10 classes one-hot encoded.
+Let's visualize the first batch from the training dataset:
+# take the first batch of the training set
+batch = next(iter(train_ds))
+
+def show_batch(batch):
+
+  plt.figure(figsize=(16, 16))
+  for n in range(min(32, batch_size)):
+      ax = plt.subplot(batch_size//8, 8, n + 1)
+      # show the image
+      plt.imshow(batch[0][n])
+      # and put the corresponding label as title upper to the image
+      plt.title(class_names[tf.argmax(batch[1][n].numpy())])
+      plt.axis('off')
+      plt.savefig("sample-images.png")
+
+# showing a batch of images along with labels
+show_batch(batch)
