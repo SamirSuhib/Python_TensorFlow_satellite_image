@@ -55,7 +55,3 @@ for i, x_ in enumerate(labels):
 # set the title
 
 ax.set_title("Bar Plot showing Number of Samples on Each Class")
-
-# save the image
-
-# plt.savefig("class_samp.png")
